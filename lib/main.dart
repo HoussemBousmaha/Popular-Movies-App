@@ -51,14 +51,6 @@ class _MoviesListState extends State<MoviesList> {
   // List of movies to hold data parsed from api response
   List<MovieModel> movies = <MovieModel>[];
 
-  @override
-  void initState() {
-    super.initState();
-
-    //This method is called once when the widet starts first time
-    fetchMovies();
-  }
-
   void fetchMovies() async {
     // Fetching data from server
     var data = await MoviesProvider.getJson();
@@ -76,6 +68,14 @@ class _MoviesListState extends State<MoviesList> {
   }
 
   @override
+  void initState() {
+    //This method is called once when the widet starts first time
+    fetchMovies();
+
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       // SingleChildScollView to accommodate dynamically sized data
@@ -89,8 +89,8 @@ class _MoviesListState extends State<MoviesList> {
             // Adding padding around the list row
             padding: const EdgeInsets.all(8.0),
 
-            // Displaying title of the movie only for now
-            child: Text(movies[index].title),
+            // Using MovieTile object to render movie's title, description and image
+            child: MovieTile(movies[index]),
           );
         },
       ),
@@ -132,4 +132,78 @@ class MovieModel {
         overview = json['overview'],
         releaseDate = json['release_date'],
         backdropPath = json['backdrop_path'];
+}
+
+class MovieTile extends StatelessWidget {
+  const MovieTile(this.movie, {Key? key}) : super(key: key);
+
+  final MovieModel movie;
+
+  //Building MovieTile to display movie information better.
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      //padding around the entry
+      padding: const EdgeInsets.all(8.0),
+      //Since information is displayed vertically, Column widget is used
+      child: Column(
+        children: [
+          // Resizing image poster based on the screen size whenever the image's path is not null.
+          Container(
+            // Making image's width to half of the given screen size
+            width: MediaQuery.of(context).size.width / 2,
+
+            // Making image's height to one fourth of the given screen size
+            height: MediaQuery.of(context).size.height / 4,
+
+            // Making image box visually appealing by dropping shadow
+            decoration: BoxDecoration(
+              // Making image box slightly curved
+              borderRadius: BorderRadius.circular(10.0),
+
+              // Setting box's color to grey
+              color: Colors.grey,
+
+              // Decorating image
+              image: DecorationImage(
+                image: NetworkImage(MoviesProvider.imagePathPrefix + movie.posterPath),
+                // Image getting all the available space
+                fit: BoxFit.cover,
+              ),
+
+              // Dropping shadow
+              boxShadow: const [
+                BoxShadow(
+                  // grey colored shadow
+                  color: Colors.grey,
+                  // Applying softening effect
+                  blurRadius: 3.0,
+                  // move 1.0 to right (horizontal), and 3.0 to down (vertical)
+                  offset: Offset(1.0, 3.0),
+                ),
+              ],
+            ),
+          ),
+          // Title widget
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              movie.title,
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: Colors.black),
+            ),
+          ),
+          // Description widget
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              movie.overview,
+              style: const TextStyle(fontSize: 18, fontStyle: FontStyle.italic),
+            ),
+          ),
+          // Divider widget
+          Divider(color: Colors.grey.shade500),
+        ],
+      ),
+    );
+  }
 }
